@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    <description>storm kafka Configuration</description>
+
+
+    <context:property-placeholder location="classpath*:/context.properties" ignore-unresolvable="true"/>
+    <context:component-scan base-package="cn.gov.bjsat.**"/>
+
+
+    <!--Storm源，KafkaSpout的配置-->
+    <bean id="kafkaSpout" class="storm.kafka.KafkaSpout">
+        <constructor-arg index="0" ref="simpleSpoutConfig"/>
+    </bean>
+    <bean id="simpleSpoutConfig" class="cn.gov.bjsat.dexc.storm.demo.config.SimpleSpoutConfig">
+        <constructor-arg index="0" ref="zkHosts"/>
+        <constructor-arg index="1" value="0201TestTopic"/>
+        <!--storm数据存储位置-->
+        <constructor-arg index="2" value="/storm"/>
+        <!--指定ID-->
+        <constructor-arg index="3" value="word"/>
+        <property name="zkServers">
+            <list value-type="java.lang.String">
+                <value>zookeeper</value>
+            </list>
+        </property>
+    </bean>
+    <bean id="zkHosts" class="storm.kafka.ZkHosts">
+        <constructor-arg index="0"
+                         value="zookeeper:2181"/>
+    </bean>
+
+
+
+
+    <!--Topology的配置-->
+    <bean class="backtype.storm.Config" id="topologyConfig">
+
+        <!--这个设置用多少个工作进程来执行这个topology。
+        比如，如果你把它设置成25， 那么集群里面一共会有25个java进程来执行这个topology的所有task。
+        不宜太多，,主要原因时减少了worker之间的数据传输-->
+        <property name="numWorkers" value="1"/>
+
+        <!--这个设置一个spout task上面最多有多少个没有处理的tuple（没有ack/failed）回复
+         推荐设置，以防止tuple队列爆掉。-->
+        <property name="maxSpoutPending" value="100"/>
+
+        <!--设置成 true 的话， storm-->
+        <!--会记录下每个组件所发射的每条消息。这在本地环境调试 topology-->
+        <!--很有用， 但是在线上这么做的话会影响性能的-->
+        <property name="debug" value="true"/>
+
+    </bean>
+
+
+
+
+    <!--发送数据到 Kafka  Producer 配置-->
+    <bean id="producer" class="kafka.javaapi.producer.Producer">
+        <constructor-arg ref="producerConfig"/>
+    </bean>
+    <bean id="producerConfig" class="kafka.producer.ProducerConfig">
+        <!--参考：http://kafka.apache.org/documentation.html#producerconfigs-->
+        <constructor-arg type="java.util.Properties">
+            <props>
+                <prop key="metadata.broker.list">kafka1:9092,kafka2:9092</prop>
+                <prop key="serializer.class">kafka.serializer.StringEncoder</prop>
+                <prop key="request.required.acks">1</prop>
+                <prop key="producer.type">sync</prop>
+                <prop key="message.send.max.retries">3</prop>
+            </props>
+        </constructor-arg>
+    </bean>
+
+
+
+</beans>

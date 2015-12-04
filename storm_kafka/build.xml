@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<project name="copy libs " default="copy-all-libs" >
+
+    <target name="copy-all-libs" >
+        <echo>拷贝libs到指定的项目libs</echo><!--打印-->
+        <!--变量-->
+        <property name="libs" value="${basedir}/libs"/>
+        <property name="libs_install_repo" value="D:/libs.git/stormKafka"/>
+
+        <echo>${libs}</echo>
+        <echo message="拷贝${libs}到${libs_install_repo}"/>
+
+        <copy todir="${libs_install_repo}" overwrite="true"><!--命令-->
+            <fileset dir="${libs}"/>
+        </copy>
+    </target>
+</project>

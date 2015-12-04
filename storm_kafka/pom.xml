@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>dataexchange -- storm_kafka</name>
+
+    <artifactId>dataexchange-storm_kafka</artifactId>
+    <packaging>jar</packaging>
+
+    <parent>
+        <version>1.0.0</version>
+        <groupId>cn.gov.bjsat.dexc.storm</groupId>
+        <artifactId>dataexchange-storm</artifactId>
+    </parent>
+
+    <!--仓库配置-->
+    <repositories>
+        <repository>
+            <id>github_lib_project</id>
+            <url>http://zlhl-dev.github.io/libs/xxpt/</url>
+        </repository>
+        <repository>
+            <id>github</id>
+            <url>http://zlhl-dev.github.io/askit/repository</url>
+        </repository>
+        <repository>
+            <id>oschina thirdparty Releases</id>
+            <name>oschina thirdparty Releases</name>
+            <url>http://maven.oschina.net/content/repositories/thirdparty/</url>
+        </repository>
+        <repository>
+            <id>oschina Releases</id>
+            <name>oschina Releases</name>
+            <url>http://maven.oschina.net/content/groups/public</url>
+        </repository>
+    </repositories>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <stormCore.version>0.9.5</stormCore.version>
+        <storm-kafka.version>0.9.5</storm-kafka.version>
+        <spring_version>4.2.1.RELEASE</spring_version>
+    </properties>
+
+    <dependencies>
+        <!--测试相关-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.9</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--storm与Kafka,storm-kafka,kafka-clients-->
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-core</artifactId>
+            <version>${stormCore.version}</version>
+            <!--keep storm out of the jar-with-dependencies-->
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-kafka</artifactId>
+            <version>${storm-kafka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_2.10</artifactId>
+            <version>0.8.2.1</version>
+            <!-- use provided scope, so users can pull in whichever scala version they choose -->
+            <!--<scope>provided</scope>-->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.zookeeper</groupId>
+                    <artifactId>zookeeper</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>2.9.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>${spring_version}</version>
+        </dependency>
+
+    </dependencies>
+    <!--相关插件-->
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <!--第一步:1.生成jar 和 源码 -->
+            <plugin>
+                <!-- 源码插件(此处有问题todo) -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+
+                <!-- 发布时自动将源码同时发布的配置 -->
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.build.finalName}-${project.version}</finalName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--第一步:2.生成maven 仓库jar所需对应文件-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <id>CustomJar</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <!-- The configuration of the plugin -->
+                        <configuration>
+                            <classesDirectory>${project.build.directory}/classes</classesDirectory>
+                            <finalName>${project.build.finalName}-${project.version}</finalName>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <useDefaultManifestFile>true</useDefaultManifestFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--第二步:点package时,复制target中的jar到libs-->
+            <plugin>
+                <!--安装插件-->
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.4</version>
+                <inherited>false</inherited>
+                <executions>
+                    <execution>
+                        <id>install-${project.build.finalName}-${project.version}.2</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <file>${project.build.directory}/${project.build.finalName}-${project.version}.jar</file>
+                            <sources>
+                                ${project.build.directory}/${project.build.finalName}-${project.version}-sources.jar
+                            </sources>
+                            <pomFile>${project.basedir}/pom.xml</pomFile>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.build.finalName}</artifactId>
+                            <packaging>jar</packaging>
+                            <createChecksum>true</createChecksum>
+                            <localRepositoryPath>${project.basedir}\libs</localRepositoryPath>
+                            <version>${project.version}</version>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--第三步:点install时 cope libs中的到要上传git的目录并到maven库中-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <id>copyLibs</id>
+                        <!--ctrl1+alt+1-->
+                        <phase>install</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <ant antfile="build.xml">
+                                    <target name="copy-all-libs"/>
+                                </ant>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 单元测试插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.7.2</version>
+                <configuration>
+                    <skip>false</skip>
+                </configuration>
+            </plugin>
+            <!--打包给集群所用,整合一个JAR-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${artifactId}-${project.version}</finalName>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.handlers</resource>
+                                </transformer>
+                                <!--<transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass></mainClass>
+                                </transformer>--><!--构建成功后会生成jar包，可以在命令行中通过java -jar XXX.jar来运行jar的入口点了。-->
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.schemas</resource>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+
+            <!-- <plugin>
+                 <groupId>org.codehaus.mojo</groupId>
+                 <artifactId>exec-maven-plugin</artifactId>
+                 <version>1.2.1</version>
+                 <executions>
+                     <execution>
+                         <goals>
+                             <goal>exec</goal>
+                         </goals>
+                     </execution>
+                 </executions>
+                 <configuration>
+                     <executable>java</executable>
+                     <includeProjectDependencies>true</includeProjectDependencies>
+                     <includePluginDependencies>false</includePluginDependencies>
+                     <classpathScope>compile</classpathScope>
+                     <mainClass>${storm.topology}</mainClass>
+                 </configuration>
+             </plugin>-->
+        </plugins>
+    </build>
+</project>
