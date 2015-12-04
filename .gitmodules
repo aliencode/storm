@@ -1,0 +1,3 @@
+[submodule "storm-contrib"]
+	path = storm-contrib
+	url = git@github.nathanmarz/storm-contrib.git
