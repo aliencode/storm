@@ -1,8 +1,0 @@
-[submodule "storm-contrib"]
-	path = storm-contrib
-	url = git@github.com:nathanmarz/storm-contrib.git
-    
-    
-[submodule "storm-cassandra"]
-	path = storm-cassandra
-	url = git@github.com:hmsonline/storm-cassandra.git
