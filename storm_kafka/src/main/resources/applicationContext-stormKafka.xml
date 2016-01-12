@@ -22,13 +22,13 @@
         <constructor-arg index="3" value="word"/>
         <property name="zkServers">
             <list value-type="java.lang.String">
-                <value>zookeeper</value>
+                <value>kafkaZK001</value>
             </list>
         </property>
     </bean>
     <bean id="zkHosts" class="storm.kafka.ZkHosts">
         <constructor-arg index="0"
-                         value="zookeeper:2181"/>
+                         value="kafkaZK001:2181"/>
     </bean>
 
 
@@ -54,24 +54,9 @@
     </bean>
 
 
+     <bean class="cn.gov.bjsat.dexc.storm.demo.WordCountTopology" id="wordCountTopology"/>
 
-
-    <!--发送数据到 Kafka  Producer 配置-->
-    <bean id="producer" class="kafka.javaapi.producer.Producer">
-        <constructor-arg ref="producerConfig"/>
-    </bean>
-    <bean id="producerConfig" class="kafka.producer.ProducerConfig">
-        <!--参考：http://kafka.apache.org/documentation.html#producerconfigs-->
-        <constructor-arg type="java.util.Properties">
-            <props>
-                <prop key="metadata.broker.list">kafka1:9092,kafka2:9092</prop>
-                <prop key="serializer.class">kafka.serializer.StringEncoder</prop>
-                <prop key="request.required.acks">1</prop>
-                <prop key="producer.type">sync</prop>
-                <prop key="message.send.max.retries">3</prop>
-            </props>
-        </constructor-arg>
-    </bean>
+    <import resource="applicationContext-stormBolt.xml"/>
 
 
 

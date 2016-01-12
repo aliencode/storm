@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    <description>storm kafka Configuration</description>
+
+
+    <context:property-placeholder location="classpath*:/context.properties" ignore-unresolvable="true"/>
+    <context:component-scan base-package="cn.gov.bjsat.**"/>
+
+
+    <!--发送数据到 Kafka  Producer 配置-->
+    <bean id="producer" class="kafka.javaapi.producer.Producer" scope="prototype">
+        <constructor-arg ref="producerConfig"/>
+    </bean>
+    <bean id="producerConfig" class="kafka.producer.ProducerConfig">
+        <!--参考：http://kafka.apache.org/documentation.html#producerconfigs-->
+        <constructor-arg type="java.util.Properties">
+            <props>
+                <prop key="metadata.broker.list">kafka001:9092,kafka002:9092,kafka003:9092,kafka004:9092,kafka005:9092</prop>
+                <prop key="serializer.class">kafka.serializer.StringEncoder</prop>
+                <prop key="request.required.acks">1</prop>
+                <prop key="producer.type">sync</prop>
+                <prop key="message.send.max.retries">3</prop>
+            </props>
+        </constructor-arg>
+    </bean>
+
+
+
+</beans>

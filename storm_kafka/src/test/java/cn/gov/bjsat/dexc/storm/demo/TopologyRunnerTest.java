@@ -7,11 +7,17 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.utils.Utils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by grf11_000 on 2015/12/1.
@@ -19,12 +25,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class TopologyRunnerTest {
 
 
-
     /**
      * 本机测试
      */
     @Test
-    public void topologyTest(){
+    public void topologyTest() {
         Logger logger = LoggerFactory.getLogger("TopologyRunnerTest");
 
         AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext-stormKafka.xml");
@@ -37,13 +42,11 @@ public class TopologyRunnerTest {
     }
 
 
-
-
     /**
      * 群集测试
      */
     @Test
-    public void topologyClusterTest(){
+    public void topologyClusterTest() {
         Logger logger = LoggerFactory.getLogger("TopologyRunnerTest");
 
         AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext-stormKafka.xml");
@@ -57,12 +60,44 @@ public class TopologyRunnerTest {
             logger.error("启动失败：{}", e.getMessage());
             e.printStackTrace();
         } catch (InvalidTopologyException e) {
-            logger.error("启动失败：{}" , e.getMessage());
+            logger.error("启动失败：{}", e.getMessage());
             e.printStackTrace();
         }
 
         Utils.sleep(600000);
 
     }
+
+
+    @Test
+    public void test() {
+        CuratorFramework client = CuratorFrameworkFactory.newClient("zookeeper:2181", new ExponentialBackoffRetry(1000, 3));
+        client.start();
+        InterProcessMutex lock = new InterProcessMutex(client, "/lockTest");
+        try {
+            if (lock.acquire(10, TimeUnit.SECONDS)) {
+                System.out.println("has locked");
+                Thread.sleep(1000 * 1000);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test2() {
+        CuratorFramework client = CuratorFrameworkFactory.newClient("zookeeper:2181", new ExponentialBackoffRetry(1000, 3));
+        client.start();
+        InterProcessMutex lock = new InterProcessMutex(client, "/lockTest");
+        try {
+            if (lock.acquire(10, TimeUnit.SECONDS)) {
+                System.out.println("has locked2");
+                Thread.sleep(1000 * 100);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

@@ -10,6 +10,7 @@ import cn.gov.bjsat.dexc.storm.demo.utils.ApplicationContextHolder;
 import kafka.javaapi.producer.Producer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,8 +38,7 @@ public class WordCountBolt extends BaseBasicBolt {
 
      */
     public WordCountBolt() {
-        logger.debug("初始化WordCountBolt");
-        producer = ApplicationContextHolder.getBean("producer");
+        logger.info("初始化WordCountBolt");
     }
 
     /**
@@ -50,12 +50,14 @@ public class WordCountBolt extends BaseBasicBolt {
     @Override
     public void prepare(Map stormConf, TopologyContext context) {
         this.counterMap = new HashMap<String, Integer>();
-        logger.debug("WordCountBolt一些准备工作");
+        producer = ApplicationContextHolder.getBean("producer");
+        Assert.notNull(producer, "Spring上下文未初始化！");
+        logger.info("WordCountBolt一些准备工作");
     }
+
 
     @Override
     public void execute(Tuple input, BasicOutputCollector collector) {
-
         //读取消息流中第0个索引字段的内容
         // 多个字段参考 WordSplitBolt.declareOutputFields() 方法说明
         String word = input.getString(0);
@@ -68,8 +70,10 @@ public class WordCountBolt extends BaseBasicBolt {
         counterMap.put(word, count);
 
         //在这里可以通过 producer 发送数据到 kafka 等其它业务逻辑
-        producer.close();
-        logger.debug("本Blot处理结果打印: {}", this.counterMap);
+        Assert.notNull(producer, "producer 未初始化！");
+        //producer.send(。); To do something
+
+        logger.info("本Blot处理结果打印: {}", this.counterMap);
 
     }
 
@@ -80,6 +84,13 @@ public class WordCountBolt extends BaseBasicBolt {
      */
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
+    }
+
+
+    @Override
+    public void cleanup() {
+        logger.info("执行bolt cleanup，关闭 kafka producer");
+        producer.close();
     }
 
 }

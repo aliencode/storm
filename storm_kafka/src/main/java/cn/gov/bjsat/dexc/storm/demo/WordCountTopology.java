@@ -5,6 +5,7 @@ import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 import cn.gov.bjsat.dexc.storm.demo.bolt.WordCountBolt;
 import cn.gov.bjsat.dexc.storm.demo.bolt.WordSplitBolt;
+import kafka.javaapi.producer.Producer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import storm.kafka.KafkaSpout;
@@ -13,13 +14,15 @@ import storm.kafka.KafkaSpout;
  * Created by grf11_000 on 2015/11/30.
  */
 
-@Component
 public class WordCountTopology {
 
     private TopologyBuilder builder;
 
     @Autowired
     private KafkaSpout kafkaSpout;
+
+    @Autowired
+    private Producer producer;
 
     @Autowired
     private Config topologyConfig;
